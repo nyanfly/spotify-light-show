@@ -13,6 +13,9 @@ void stripFade(uint8_t r, uint8_t g, uint8_t b);
 void stripFlow(uint8_t r, uint8_t g, uint8_t b);
 void stripDrop(uint8_t r, uint8_t g, uint8_t b);
 void stripBoop(uint8_t r, uint8_t g, uint8_t b);
+void stripBoop2(uint8_t r, uint8_t g, uint8_t b);
+void stripStripes(uint8_t r, uint8_t g, uint8_t b);
+void stripTraffic(uint8_t r, uint8_t g, uint8_t b);
 
 #define LED_STRIP_PIN 14
 
@@ -29,7 +32,7 @@ const uint8_t rs[NUM_SECTION_COLORS] = {0, 0, 0, 30};
 const uint8_t gs[NUM_SECTION_COLORS] = {30, 30, 0, 0};
 const uint8_t bs[NUM_SECTION_COLORS] = {30, 0, 30, 0};
 
-void (*ledEffects[4])(uint8_t r, uint8_t g, uint8_t b) = {stripBoop,stripBoop,stripBoop,stripBoop};//{stripFill, stripFade, stripFlow, stripBoop};
+void (*ledEffects[4])(uint8_t r, uint8_t g, uint8_t b) = {stripTraffic,stripTraffic,stripTraffic,stripTraffic};//{stripFill, stripFade, stripFlow, stripBoop};
 
 // TODO rewrite with uint_32 etc
 
@@ -394,6 +397,37 @@ void stripBoop(uint8_t r, uint8_t g, uint8_t b) {   // what are these names
   static uint8_t last_g;
   static uint8_t last_b;
   static uint8_t frameCount = 0;
+
+  uint16_t numBoopsAlongStrip = 10;
+  uint16_t boopSegmentSize = strip.numPixels()/numBoopsAlongStrip;
+
+//  if ((r || g || b) && last_r != r || last_g != g || last_b != b) {
+  if (r || g || b) {
+    boopRadius = boopSegmentSize/2;
+    last_r = r;
+    last_g = g;
+    last_b = b;
+  } else {
+    frameCount++;
+    if(frameCount % 3 == 0){
+      boopRadius = _max(boopRadius - 1, 0);
+    }
+  }
+  uint32_t color = strip.Color(last_r, last_g, last_b);
+
+  for (uint16_t i = 0; i < strip.numPixels(); i++) {    // TODO: what if there's an odd number of pixels?
+    uint16_t localBoopCoordinate = i % boopSegmentSize;
+    strip.setPixelColor(i, abs(localBoopCoordinate - boopSegmentSize/2) < boopRadius? color : 0);
+  }
+  strip.show();
+}
+
+void stripBoop2(uint8_t r, uint8_t g, uint8_t b) {   // what are these names
+  static uint16_t boopRadius; // uint8_t or uint16_t?
+  static uint8_t last_r;
+  static uint8_t last_g;
+  static uint8_t last_b;
+  static uint8_t frameCount = 0;
   static uint8_t numBeats = 0;
   
 
@@ -421,8 +455,83 @@ void stripBoop(uint8_t r, uint8_t g, uint8_t b) {   // what are these names
       strip.setPixelColor(i, abs(localBoopCoordinate - boopSegmentSize/2) < boopRadius? color : 0);
     }
     else{
-      strip.setPixelColor(i, abs(localBoopCoordinate - boopSegmentSize/2) > (boopSegmentSize/2 - boopRadius)? color : 0);
+      strip.setPixelColor(i, abs(localBoopCoordinate - boopSegmentSize/2) > boopRadius? color : 0);
     }
+  }
+  strip.show();
+}
+void stripStripes(uint8_t r, uint8_t g, uint8_t b) {   // what are these names
+  static uint8_t last_r;
+  static uint8_t last_g;
+  static uint8_t last_b;
+  static uint8_t numBeats = 0;
+
+  uint16_t numStripesAlongStrip = 10;
+  uint16_t stripeSegmentSize = strip.numPixels()/numStripesAlongStrip;
+
+  if (r || g || b) {
+    last_r = r;
+    last_g = g;
+    last_b = b;
+    numBeats ++;
+  }
+
+  uint32_t color = strip.Color(last_r, last_g, last_b);
+
+  for (uint16_t i = 0; i < strip.numPixels(); i++) {    // TODO: what if there's an odd number of pixels?
+    uint16_t localCoordinate = i % stripeSegmentSize;
+    strip.setPixelColor(i, (localCoordinate < stripeSegmentSize/2) != (numBeats % 2 == 0)? color : 0);
+  }
+  strip.show();
+}
+
+void stripTraffic(uint8_t r, uint8_t g, uint8_t b) {   // what are these names
+  static uint16_t rate; // uint8_t or uint16_t?
+  static uint16_t offset; // uint8_t or uint16_t?
+  static uint8_t last_r;
+  static uint8_t last_g;
+  static uint8_t last_b;
+  static uint8_t frameCount = 0;
+
+  if (r || g || b) {
+    rate = 60;
+    last_r = r;
+    last_g = g;
+    last_b = b;
+  } else {
+    rate = _max(rate - 2, 5);
+  }
+
+  offset += rate;
+  uint32_t color = strip.Color(last_r, last_g, last_b);
+
+  for (uint16_t i = 0; i < strip.numPixels(); i++) {    // TODO: what if there's an odd number of pixels?
+    strip.setPixelColor(i, ((i + offset/100) % 20 < 10) ? color : 0);
+  }
+  strip.show();
+}
+void stripTraffic2(uint8_t r, uint8_t g, uint8_t b) {   // what are these names
+  static uint16_t rate; // uint8_t or uint16_t?
+  static uint16_t offset; // uint8_t or uint16_t?
+  static uint8_t last_r;
+  static uint8_t last_g;
+  static uint8_t last_b;
+  static uint8_t frameCount = 0;
+
+  if (r || g || b) {
+    rate = 60;
+    last_r = r;
+    last_g = g;
+    last_b = b;
+  } else {
+    rate = _max(rate - 2, 5);
+  }
+
+  offset += rate;
+  uint32_t color = strip.Color(last_r, last_g, last_b);
+
+  for (uint16_t i = 0; i < strip.numPixels(); i++) {    // TODO: what if there's an odd number of pixels?
+    strip.setPixelColor(i, ((i + offset/100) % 20 < 10) != (20-(3*(strip.numPixels()-i)/7 + offset/123) % 20 < 10) ? color : 0);
   }
   strip.show();
 }
