@@ -1,0 +1,21 @@
+{
+  "name": "spotify-test",
+  "version": "1.0.0",
+  "main": "index.js",
+  "license": "MIT",
+  "dependencies": {
+    "express": "^4.14.0",
+    "mopidy": "^0.5.0",
+    "spotify-web-api-node": "^2.3.6"
+  },
+  "devDependencies": {
+    "babel-cli": "^6.18.0",
+    "babel-core": "^6.20.0",
+    "babel-preset-env": "^1.1.1",
+    "nodemon": "^1.11.0"
+  },
+  "scripts": {
+    "start": "babel-node app.js",
+    "startmon": "nodemon --exec npm run start"
+  }
+}
